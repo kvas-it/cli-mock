@@ -1,4 +1,4 @@
 Cli Mock
 ========
 
-Mock command line utilities by replaying recorded invocations.
+Mock command line utilities by replaying recorded command invocations.

@@ -32,11 +32,11 @@ setup(
     ],
     keywords='cli console mock record replay',
     packages=['cli_mock'],
-    install_requires=[],
+    install_requires=['click'],
     entry_points={
         'console_scripts': [
-            'crecord=cli_mock:record',
-            'creplay=cli_mock:replay',
+            'crecord=cli_mock.crecord:main',
+            'creplay=cli_mock.creplay:main',
         ],
     },
 )
