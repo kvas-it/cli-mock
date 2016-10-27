@@ -1,4 +1,11 @@
+from __future__ import print_function
 
-def main():
-    """Entry point for the application script"""
-    print("Call your main application code here")
+
+def record():
+    """Record the output of a console script."""
+    print('Record')
+
+
+def replay():
+    """Replay the output of a console script."""
+    print('Replay')

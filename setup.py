@@ -35,8 +35,8 @@ setup(
     install_requires=[],
     entry_points={
         'console_scripts': [
-            'cli-rec=cli_mock.cli:record',
-            'cli-replay=cli_mock.cli:replay',
+            'crecord=cli_mock:record',
+            'creplay=cli_mock:replay',
         ],
     },
 )

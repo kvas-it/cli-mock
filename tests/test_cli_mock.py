@@ -1,7 +1,12 @@
-# the inclusion of the tests module is not meant to offer best practices for
-# testing in general, but rather to support the `find_packages` example in
-# setup.py that excludes installing the "tests" package
+def test_crecord(script_runner):
+    ret = script_runner.run('crecord')
+    assert ret.success
+    assert ret.stdout == 'Record\n'
+    assert ret.stderr == ''
 
 
-def test_success():
-    assert True
+def test_creplay(script_runner):
+    ret = script_runner.run('creplay')
+    assert ret.success
+    assert ret.stdout == 'Replay\n'
+    assert ret.stderr == ''
