@@ -1,8 +1,10 @@
+from __future__ import unicode_literals
+
+import argparse
+import io
 import subprocess
 import sys
 import threading
-
-import click
 
 
 def forward_stream(stream, out, log, prefix):
@@ -23,19 +25,23 @@ def forward_stream(stream, out, log, prefix):
     return thread
 
 
-@click.command()
-@click.option('-o', '--output', type=click.File('a'), help='Output file')
-@click.argument('command', nargs=-1)
-def main(output, command):
-    output.write('$ {}\n'.format(' '.join(command)))
-    proc = subprocess.Popen(command,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            universal_newlines=True)
-    out_watcher = forward_stream(proc.stdout, sys.stdout, output, '>')
-    err_watcher = forward_stream(proc.stderr, sys.stderr, output, '!')
-    proc.wait()
-    out_watcher.join()
-    err_watcher.join()
-    output.write('= {}\n'.format(proc.returncode))
-    sys.exit(proc.returncode)
+def main():
+    parser = argparse.ArgumentParser(
+        description='Log output of command line utilities'
+    )
+    parser.add_argument('-l', '--log', default='log.txt', help='log file')
+    parser.add_argument('cmd', nargs='+', help='command and options')
+    args = parser.parse_args()
+    with io.open(args.log, 'a', encoding='utf-8') as log:
+        log.write('$ {}\n'.format(' '.join(args.cmd)))
+        proc = subprocess.Popen(args.cmd,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                universal_newlines=True)
+        out_watcher = forward_stream(proc.stdout, sys.stdout, log, '>')
+        err_watcher = forward_stream(proc.stderr, sys.stderr, log, '!')
+        proc.wait()
+        out_watcher.join()
+        err_watcher.join()
+        log.write('= {}\n'.format(proc.returncode))
+        sys.exit(proc.returncode)

@@ -1,16 +1,24 @@
 import pytest
 
 
+def test_default_log(script_runner, tmpdir, logfile):
+    ret = script_runner.run('crecord', 'echo', 'foo', cwd=str(tmpdir))
+    assert ret.success
+    assert ret.stdout == 'foo\n'
+    assert ret.stderr == ''
+    assert logfile.read() == '$ echo foo\n> foo\n= 0\n'
+
+
 @pytest.fixture()
 def logfile(tmpdir):
     return tmpdir.join('log.txt')
 
 
 @pytest.fixture()
-def crecord(script_runner, logfile):
+def crecord(script_runner, tmpdir, logfile):
     def crecord(*args, **kw):
-        return script_runner.run('crecord', '-o', str(logfile), '--',
-                                 *args, **kw)
+        return script_runner.run('crecord', '-l', str(logfile), '--',
+                                 cwd=str(tmpdir), *args, **kw)
     return crecord
 
 
@@ -42,12 +50,13 @@ def test_crecord_order(crecord, tmpdir, logfile):
     script = tmpdir.join('script.sh')
     script.write("""#!/bin/sh
 echo foo
+sleep 0.01  # Sleep to defeat the scheduler.
 echo bar >&2
-sleep 0.001  # Sleep to defeat the scheduler.
+sleep 0.01
 echo baz
     """)
     script.chmod(0o777)
-    ret = crecord('./script.sh', cwd=str(tmpdir))
+    ret = crecord('./script.sh')
     assert ret.success
     assert ret.stdout == 'foo\nbaz\n'
     assert ret.stderr == 'bar\n'
