@@ -47,18 +47,43 @@ def test_crecord_err(crecord, logfile):
 
 
 def test_crecord_order(crecord, tmpdir, logfile):
-    script = tmpdir.join('script.sh')
-    script.write("""#!/bin/sh
-echo foo
-sleep 0.01  # Sleep to defeat the scheduler.
-echo bar >&2
-sleep 0.01
-echo baz
+    script = tmpdir.join('script.py')
+    script.write("""#!/usr/bin/env python
+import sys, time
+
+sys.stdout.write('foo\\n123')
+sys.stdout.flush()
+time.sleep(0.001)
+sys.stderr.write('bar\\n')
+sys.stderr.flush()
+time.sleep(0.001)
+sys.stdout.write('baz\\n')
+sys.stdout.flush()
     """)
     script.chmod(0o777)
-    ret = crecord('./script.sh')
-    assert ret.success
-    assert ret.stdout == 'foo\nbaz\n'
-    assert ret.stderr == 'bar\n'
+    ret = crecord('./script.py')
     print(logfile.read())
-    assert logfile.read() == '$ ./script.sh\n> foo\n! bar\n> baz\n= 0\n'
+    print(ret.stdout)
+    assert ret.success
+    assert ret.stdout == 'foo\n123baz\n'
+    assert ret.stderr == 'bar\n'
+    assert logfile.read() == '$ ./script.py\n> foo\n>|123\n! bar\n> baz\n= 0\n'
+
+
+# def test_crecord_order(crecord, tmpdir, logfile):
+#     script = tmpdir.join('script.sh')
+#     script.write("""#!/bin/sh
+# echo foo
+# sleep 0.01  # Sleep to defeat the scheduler.
+# echo bar >&2
+# sleep 0.01
+# echo baz
+#     """)
+#     script.chmod(0o777)
+#     ret = crecord('./script.sh')
+#     assert ret.success
+#     print(logfile.read())
+#     print(ret.stdout)
+#     assert ret.stdout == 'foo\nbaz\n'
+#     assert ret.stderr == 'bar\n'
+#     assert logfile.read() == '$ ./script.sh\n> foo\n! bar\n> baz\n= 0\n'

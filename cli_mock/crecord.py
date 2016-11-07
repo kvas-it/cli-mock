@@ -2,27 +2,29 @@ from __future__ import unicode_literals
 
 import argparse
 import io
+import selectors
 import subprocess
 import sys
-import threading
 
 
-def forward_stream(stream, out, log, prefix):
-    """Forward stream to output stream prefixing lines with prefix."""
+def forward(instream, outstream, log, prefix):
+    """Forward input to output prefixing lines with prefix."""
+    data = instream.read()
+    outstream.write(data)
 
-    def forward():
-        for line in stream:
-            out.write(line)
-            if line.endswith('\n'):
-                template = '{} {}'
-            else:
-                template = '{}|{}\n'
-            log.write(template.format(prefix, line))
+    if data == '':
+        instream.close()
+        return
 
-    thread = threading.Thread(target=forward)
-    thread.daemon = True
-    thread.start()
-    return thread
+    items = data.split('\n')
+    items[:-1] = ['{} {}\n'.format(prefix, i) for i in items[:-1]]
+    if items[-1] != '':
+        items[-1] = '{}|{}\n'.format(prefix, items[-1])
+    else:
+        items = items[:-1]
+
+    for item in items:
+        log.write(item)
 
 
 def main():
@@ -34,14 +36,22 @@ def main():
     args = parser.parse_args()
     with io.open(args.log, 'a', encoding='utf-8') as log:
         log.write('$ {}\n'.format(' '.join(args.cmd)))
-        proc = subprocess.Popen(args.cmd,
+        proc = subprocess.Popen(args.cmd, bufsize=0,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 universal_newlines=True)
-        out_watcher = forward_stream(proc.stdout, sys.stdout, log, '>')
-        err_watcher = forward_stream(proc.stderr, sys.stderr, log, '!')
+
+        sel = selectors.DefaultSelector()
+        sel.register(proc.stdout, selectors.EVENT_READ, (sys.stdout, '>'))
+        sel.register(proc.stderr, selectors.EVENT_READ, (sys.stderr, '!'))
+
+        while not (proc.stdout.closed and proc.stderr.closed):
+            selected = sel.select()
+            for sk, _ in selected:
+                instream = sk.fileobj
+                outstream, prefix = sk.data
+                forward(instream, outstream, log, prefix)
+
         proc.wait()
-        out_watcher.join()
-        err_watcher.join()
         log.write('= {}\n'.format(proc.returncode))
         sys.exit(proc.returncode)
