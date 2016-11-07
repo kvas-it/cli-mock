@@ -32,35 +32,38 @@ def test_crecord_echo(crecord, logfile):
     assert logfile.read() == '$ echo foo\n> foo\n= 0\n'
 
 
-# def test_crecord_echo_n(crecord, logfile):
-#     ret = crecord('echo', '-n', 'foo')
-#     assert ret.success
-#     assert ret.stdout == 'foo'
-#     assert ret.stderr == ''
-#     assert logfile.read() == '$ echo -n foo\n>|foo\n= 0\n'
+def test_crecord_echo_n(crecord, logfile):
+    ret = crecord('echo', '-n', 'foo')
+    assert ret.success
+    assert ret.stdout == 'foo'
+    assert ret.stderr == ''
+    assert logfile.read() == '$ echo -n foo\n>|foo\n= 0\n'
 
 
-# def test_crecord_err(crecord, logfile):
-#     ret = crecord('ls', 'foo')
-#     assert not ret.success
-#     assert ret.stdout == ''
-#     assert 'foo' in ret.stderr
-#     assert logfile.read() == '$ ls foo\n! {}= 1\n'.format(ret.stderr)
+def test_crecord_err(crecord, logfile):
+    ret = crecord('ls', 'foo')
+    assert not ret.success
+    assert ret.stdout == ''
+    assert 'foo' in ret.stderr
+    assert logfile.read() == '$ ls foo\n! {}= 1\n'.format(ret.stderr)
 
 
-# def test_crecord_order(crecord, tmpdir, logfile):
-#     script = tmpdir.join('script.sh')
-#     script.write("""#!/bin/sh
-# echo foo
-# sleep 0.01  # Sleep to defeat the scheduler.
-# echo bar >&2
-# sleep 0.01
-# echo baz
-#     """)
-#     script.chmod(0o777)
-#     ret = crecord('./script.sh')
-#     assert ret.success
-#     assert ret.stdout == 'foo\nbaz\n'
-#     assert ret.stderr == 'bar\n'
-#     print(logfile.read())
-#     assert logfile.read() == '$ ./script.sh\n> foo\n! bar\n> baz\n= 0\n'
+def test_crecord_order(crecord, tmpdir, logfile):
+    script = tmpdir.join('script.py')
+    script.write("""#!/usr/bin/env python
+import sys, time
+sys.stdout.write('foo\\n123')
+sys.stdout.flush()
+time.sleep(0.01)
+sys.stderr.write('bar\\n')
+sys.stderr.flush()
+time.sleep(0.01)
+sys.stdout.write('baz\\n')
+    """)
+    script.chmod(0o777)
+    ret = crecord('./script.py')
+    assert ret.success
+    assert ret.stdout == 'foo\n123baz\n'
+    assert ret.stderr == 'bar\n'
+    print(logfile.read())
+    assert logfile.read() == '$ ./script.py\n> foo\n>|123\n! bar\n> baz\n= 0\n'
