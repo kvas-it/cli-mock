@@ -47,18 +47,21 @@ def test_crecord_err(crecord, logfile):
 
 
 def test_crecord_order(crecord, tmpdir, logfile):
-    script = tmpdir.join('script.sh')
-    script.write("""#!/bin/sh
-echo foo
-sleep 0.01  # Sleep to defeat the scheduler.
-echo bar >&2
-sleep 0.01
-echo baz
+    script = tmpdir.join('script.py')
+    script.write("""#!/usr/bin/env python
+import sys, time
+sys.stdout.write('foo\\n')
+sys.stdout.flush()
+time.sleep(0.001)
+sys.stderr.write('bar\\n')
+sys.stderr.flush()
+time.sleep(0.001)
+sys.stdout.write('baz\\n')
     """)
     script.chmod(0o777)
-    ret = crecord('./script.sh')
+    ret = crecord('./script.py')
     assert ret.success
     assert ret.stdout == 'foo\nbaz\n'
     assert ret.stderr == 'bar\n'
     print(logfile.read())
-    assert logfile.read() == '$ ./script.sh\n> foo\n! bar\n> baz\n= 0\n'
+    assert logfile.read() == '$ ./script.py\n> foo\n! bar\n> baz\n= 0\n'
