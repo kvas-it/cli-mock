@@ -22,17 +22,21 @@ def test_echo_n(crecord, logfile):
     assert logfile.read() == '$ echo -n foo\n>|foo\n= 0\n'
 
 
-def test_err(crecord, logfile):
-    ret = crecord('ls', 'foo')
+def test_err(crecord, pyscript, logfile):
+    pyscript.write("""#!/usr/bin/env python
+import sys
+sys.stderr.write('error\\n')
+sys.exit(1)
+    """)
+    ret = crecord('./script.py')
     assert not ret.success
     assert ret.stdout == ''
-    assert 'foo' in ret.stderr
-    assert logfile.read() == '$ ls foo\n! {}= 1\n'.format(ret.stderr)
+    assert ret.stderr == 'error\n'
+    assert logfile.read() == '$ ./script.py\n! error\n= 1\n'
 
 
-def test_order(crecord, tmpdir, logfile):
-    script = tmpdir.join('script.py')
-    script.write("""#!/usr/bin/env python
+def test_order(crecord, pyscript, logfile):
+    pyscript.write("""#!/usr/bin/env python
 import sys, time
 sys.stdout.write('foo\\n123')
 sys.stdout.flush()
@@ -42,10 +46,8 @@ sys.stderr.flush()
 time.sleep(0.001)
 sys.stdout.write('baz\\n')
     """)
-    script.chmod(0o777)
     ret = crecord('./script.py')
     assert ret.success
     assert ret.stdout == 'foo\n123baz\n'
     assert ret.stderr == 'bar\n'
-    print(logfile.read())
     assert logfile.read() == '$ ./script.py\n> foo\n>|123\n! bar\n> baz\n= 0\n'
