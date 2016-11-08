@@ -1,20 +1,9 @@
-import pytest
-
-
 def test_default_log(script_runner, tmpdir, logfile):
     ret = script_runner.run('crecord', 'echo', 'foo', cwd=str(tmpdir))
     assert ret.success
     assert ret.stdout == 'foo\n'
     assert ret.stderr == ''
     assert logfile.read() == '$ echo foo\n> foo\n= 0\n'
-
-
-@pytest.fixture()
-def crecord(script_runner, tmpdir, logfile):
-    def crecord(*args, **kw):
-        return script_runner.run('crecord', '-l', str(logfile), '--',
-                                 cwd=str(tmpdir), *args, **kw)
-    return crecord
 
 
 def test_echo(crecord, logfile):

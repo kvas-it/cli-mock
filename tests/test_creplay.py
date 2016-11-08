@@ -9,14 +9,6 @@ def test_default_log(script_runner, tmpdir, logfile):
     assert ret.stderr == ''
 
 
-@pytest.fixture()
-def creplay(script_runner, tmpdir, logfile):
-    def creplay(*args, **kw):
-        return script_runner.run('creplay', '-l', str(logfile), '--',
-                                 cwd=str(tmpdir), *args, **kw)
-    return creplay
-
-
 def test_echo_n(creplay, logfile):
     logfile.write('$ echo -n foo\n>|foo\n= 0\n')
     ret = creplay('echo', '-n', 'foo')
@@ -39,3 +31,19 @@ def test_order(creplay, tmpdir, logfile):
     assert ret.success
     assert ret.stdout == 'foo\n123baz\n'
     assert ret.stderr == 'bar\n'
+
+
+@pytest.fixture
+def logfile2(tmpdir):
+    return tmpdir.join('log2.txt')
+
+
+def test_record_replay(crecord, tmpdir, logfile, logfile2):
+    logfile2.write('$ foo\n> foo\n! bar\n> baz\n= 0\n')
+    ret = crecord('creplay', '-l', logfile2.strpath, 'foo')
+    assert ret.success
+    assert ret.stdout == 'foo\nbaz\n'
+    assert ret.stderr == 'bar\n'
+    lines = set(logfile.read().split('\n')[1:-1])
+    # Unfortunately the order can get messed up.
+    assert lines == {'> foo', '! bar', '> baz', '= 0'}
