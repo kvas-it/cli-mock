@@ -10,11 +10,6 @@ def test_default_log(script_runner, tmpdir, logfile):
 
 
 @pytest.fixture()
-def logfile(tmpdir):
-    return tmpdir.join('log.txt')
-
-
-@pytest.fixture()
 def crecord(script_runner, tmpdir, logfile):
     def crecord(*args, **kw):
         return script_runner.run('crecord', '-l', str(logfile), '--',
@@ -22,7 +17,7 @@ def crecord(script_runner, tmpdir, logfile):
     return crecord
 
 
-def test_crecord_echo(crecord, logfile):
+def test_echo(crecord, logfile):
     ret = crecord('echo', 'foo')
     assert ret.success
     assert ret.stdout == 'foo\n'
@@ -30,7 +25,7 @@ def test_crecord_echo(crecord, logfile):
     assert logfile.read() == '$ echo foo\n> foo\n= 0\n'
 
 
-def test_crecord_echo_n(crecord, logfile):
+def test_echo_n(crecord, logfile):
     ret = crecord('echo', '-n', 'foo')
     assert ret.success
     assert ret.stdout == 'foo'
@@ -38,7 +33,7 @@ def test_crecord_echo_n(crecord, logfile):
     assert logfile.read() == '$ echo -n foo\n>|foo\n= 0\n'
 
 
-def test_crecord_err(crecord, logfile):
+def test_err(crecord, logfile):
     ret = crecord('ls', 'foo')
     assert not ret.success
     assert ret.stdout == ''
@@ -46,7 +41,7 @@ def test_crecord_err(crecord, logfile):
     assert logfile.read() == '$ ls foo\n! {}= 1\n'.format(ret.stderr)
 
 
-def test_crecord_order(crecord, tmpdir, logfile):
+def test_order(crecord, tmpdir, logfile):
     script = tmpdir.join('script.py')
     script.write("""#!/usr/bin/env python
 import sys, time
