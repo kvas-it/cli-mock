@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import argparse
 import io
+import locale
 import subprocess
 import sys
 import threading
@@ -11,13 +12,18 @@ def forward_stream(stream, out, log, prefix):
     """Forward stream to output stream prefixing lines with prefix."""
 
     def forward():
-        for line in stream:
-            out.write(line)
-            if line.endswith('\n'):
-                template = '{} {}'
-            else:
-                template = '{}|{}\n'
-            log.write(template.format(prefix, line))
+        while True:
+            data = stream.read1(1024)
+            if not data:
+                return
+            text = data.decode(locale.getpreferredencoding(False))
+            lines = text.split('\n')
+            for line in lines[:-1]:
+                out.write(line + '\n')
+                log.write('{} {}\n'.format(prefix, line))
+            if lines[-1]:
+                out.write(lines[-1])
+                log.write('{}|{}\n'.format(prefix, lines[-1]))
 
     thread = threading.Thread(target=forward)
     thread.daemon = True
@@ -40,8 +46,7 @@ def main():
         log.write('$ {}\n'.format(' '.join(cmd)))
         proc = subprocess.Popen(cmd,
                                 stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                universal_newlines=True)
+                                stderr=subprocess.PIPE)
         out_watcher = forward_stream(proc.stdout, sys.stdout, log, '>')
         err_watcher = forward_stream(proc.stderr, sys.stderr, log, '!')
         proc.wait()
