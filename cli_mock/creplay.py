@@ -18,7 +18,7 @@ def load_log(log_path):
                     ret[cmd] = output
                 cmd = line[2:]
                 output = []
-            elif line[0] in {'>', '!', '='}:
+            elif line and line[0] in {'>', '!', '='}:
                 output.append(line)
     return ret
 

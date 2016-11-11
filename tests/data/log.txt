@@ -1,0 +1,24 @@
+$ echo foo
+> foo
+= 0
+
+$ echo -n foo
+>|foo
+= 0
+
+$ foo bar
+! Error
+= 1
+
+$ ./script.py
+> foo
+>|123
+! bar
+> baz
+= 0
+
+$ foo
+> foo
+! bar
+> baz
+= 0

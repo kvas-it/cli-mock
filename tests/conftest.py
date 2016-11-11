@@ -1,3 +1,6 @@
+import os
+
+import py
 import pytest
 
 
@@ -7,9 +10,15 @@ def logfile(tmpdir):
 
 
 @pytest.fixture()
-def creplay(script_runner, tmpdir, logfile):
+def testlog():
+    datadir = py.path.local(os.path.dirname(__file__)).join('data')
+    return datadir.join('log.txt')
+
+
+@pytest.fixture()
+def creplay(script_runner, tmpdir, testlog):
     def creplay(*args, **kw):
-        return script_runner.run('creplay', '-l', str(logfile), '--',
+        return script_runner.run('creplay', '-l', str(testlog), '--',
                                  cwd=tmpdir.strpath, *args, **kw)
     return creplay
 
