@@ -36,5 +36,8 @@ setup(
             'crecord=cli_mock.crecord:main',
             'creplay=cli_mock.creplay:main',
         ],
+        'pytest11': [
+            'cli-mock = cli_mock.pytest_plugin',
+        ],
     },
 )
