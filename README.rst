@@ -38,5 +38,21 @@ the hood)::
         assert output == b'bar\n'
 
 After the replay log is activated calls to ``subprocess.Popen`` and friends
-with the commands that are contained in the log will replay from the log
-instead.
+with the commands that are contained in the log will replay from the log.
+Commands that are not in the log will trigger an ``AssertionError``.
+
+Non-strict mode
+~~~~~~~~~~~~~~~
+
+It's possible to allow executing commands that are not in the log via
+activating non-strict mode::
+
+    popen_controller.set_strict(False)
+
+or::
+
+    popen_controller.set_replay_log(my_log, strict=False)
+
+In non-strict mode any command that is not in the log will be passed to
+``subprocess.Popen`` without modifications and will be executed in a usual
+fashion.
