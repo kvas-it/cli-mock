@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import argparse
 import io
 import locale
+import os
 import subprocess
 import sys
 import threading
@@ -43,6 +44,9 @@ def main():
     args = parser.parse_args()
     cmd = [args.cmd] + args.opts
     with io.open(args.log, 'a', encoding='utf-8') as log:
+        stats = os.stat(args.log)
+        if stats.st_size > 0:
+            log.write('\n')
         log.write('$ {}\n'.format(' '.join(cmd)))
         proc = subprocess.Popen(cmd,
                                 stdout=subprocess.PIPE,

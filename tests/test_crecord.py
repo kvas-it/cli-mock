@@ -1,5 +1,5 @@
-def test_default_log(script_runner, tmpdir, logfile):
-    ret = script_runner.run('crecord', 'echo', 'foo', cwd=str(tmpdir))
+def test_default_log(crecord, tmpdir, logfile):
+    ret = crecord('echo', 'foo', crecord_args=[])
     assert ret.success
     assert ret.stdout == 'foo\n'
     assert ret.stderr == ''

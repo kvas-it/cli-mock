@@ -1,6 +1,5 @@
-def test_default_log(script_runner, tmpdir, testlog):
-    ret = script_runner.run('creplay', '-l', testlog.strpath,
-                            'echo', 'foo', cwd=str(tmpdir))
+def test_default_log(creplay, testlog):
+    ret = creplay('echo', 'foo', creplay_args=[], cwd=testlog.dirname)
     assert ret.success
     assert ret.stdout == 'foo\n'
     assert ret.stderr == ''
