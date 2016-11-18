@@ -28,6 +28,10 @@ class PopenController:
         cls.strict = strict
 
     @classmethod
+    def set_strict(cls, strict):
+        cls.strict = strict
+
+    @classmethod
     def clear_replay_log(cls):
         cls.log_path = ''
         cls.commands = set()
