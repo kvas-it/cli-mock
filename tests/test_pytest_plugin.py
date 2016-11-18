@@ -3,13 +3,13 @@ import subprocess
 import pytest
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def pc(popen_controller, testlog):
     popen_controller.set_replay_log(testlog.strpath)
     return popen_controller
 
 
-def test_popen():
+def test_popen(pc):
     proc = subprocess.Popen(['foo'], stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             universal_newlines=True)
@@ -19,11 +19,24 @@ def test_popen():
     assert proc.stderr.read() == 'bar\n'
 
 
-def test_popen_error():
+def test_popen_error(pc):
     proc = subprocess.Popen(['foo', 'bar'])
     assert proc.wait() == 1
 
 
-def test_high_level_api():
+def test_high_level_api(pc):
     output = subprocess.check_output(['foo'], universal_newlines=True)
     assert output == 'foo\nbaz\n'
+
+
+def test_strictness(pc):
+    """The code is not allwed to run commands not in the log."""
+    with pytest.raises(AssertionError) as raised:
+        subprocess.Popen(['ls', 'foo'])
+    assert str(raised.value) == 'Unexpected command: ls foo'
+
+
+def test_non_strict(popen_controller, testlog):
+    popen_controller.set_replay_log(testlog.strpath, strict=False)
+    proc = subprocess.Popen(['true'])
+    assert proc.wait() == 0

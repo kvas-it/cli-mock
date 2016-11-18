@@ -16,12 +16,16 @@ class PopenController:
     # Set of commands supported by current replay log.
     commands = set()  # type: Set[str]
 
+    # Strict mode (any command not in the log will cause AssertionError).
+    strict = True
+
     real_popen = subprocess.Popen
 
     @classmethod
-    def set_replay_log(cls, log_path):
+    def set_replay_log(cls, log_path, strict=True):
         cls.log_path = log_path
         cls.commands = set(load_log(log_path))
+        cls.strict = strict
 
     @classmethod
     def clear_replay_log(cls):
@@ -34,6 +38,8 @@ class PopenController:
         if cmd_str in cls.commands:
             return cls.real_popen(['creplay', '-l', cls.log_path, '--'] + cmd,
                                   *args, **kw)
+        elif cls.strict:
+            raise AssertionError('Unexpected command: ' + ' '.join(cmd))
         else:
             return cls.real_popen(cmd, *args, **kw)
 
