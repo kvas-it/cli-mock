@@ -1,3 +1,5 @@
+# This log file is used for testing creplay.
+
 $ echo foo
 > foo
 = 0
@@ -6,6 +8,7 @@ $ echo -n foo
 >|foo
 = 0
 
+# Command that fails.
 $ foo bar
 ! Error
 = 1

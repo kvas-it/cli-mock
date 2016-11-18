@@ -51,3 +51,12 @@ sys.stdout.write('baz\\n')
     assert ret.stdout == 'foo\n123baz\n'
     assert ret.stderr == 'bar\n'
     assert logfile.read() == '$ ./script.py\n> foo\n>|123\n! bar\n> baz\n= 0\n'
+
+
+def test_comment(crecord, logfile):
+    ret = crecord('echo', 'foo',
+                  crecord_args=['-l', logfile.strpath, '-c', 'Hello world!'])
+    assert ret.success
+    assert ret.stdout == 'foo\n'
+    assert ret.stderr == ''
+    assert logfile.read() == '# Hello world!\n$ echo foo\n> foo\n= 0\n'

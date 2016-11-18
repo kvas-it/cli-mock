@@ -22,7 +22,7 @@ def creplay(script_runner, tmpdir, testlog):
             creplay_args = kw['creplay_args']
             del kw['creplay_args']
         else:
-            creplay_args = ['-l', str(testlog)]
+            creplay_args = ['-l', testlog.strpath]
         creplay_args.extend(['--'] + list(args))
         if 'cwd' not in kw:
             kw['cwd'] = tmpdir.strpath
@@ -37,12 +37,16 @@ def crecord(script_runner, tmpdir, logfile):
             crecord_args = kw['crecord_args']
             del kw['crecord_args']
         else:
-            crecord_args = ['-l', str(logfile)]
+            crecord_args = ['-l', logfile.strpath]
         crecord_args.extend(['--'] + list(args))
         if 'cwd' not in kw:
             kw['cwd'] = tmpdir.strpath
         ret = script_runner.run('crecord', *crecord_args, **kw)
-        print(logfile.read())  # For test debugging.
+        try:
+            print(logfile.read())  # For test debugging.
+        except:
+            print('-- no logfile produced\n-- stderr:')
+            print(ret.stderr)
         return ret
     return crecord
 

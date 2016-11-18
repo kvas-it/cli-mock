@@ -39,6 +39,8 @@ def main():
                'the invoked command, prefix the command with "--".'
     )
     parser.add_argument('-l', '--log', default='log.txt', help='log file')
+    parser.add_argument('-c', '--comment', default=None,
+                        help='comment to place in the log')
     parser.add_argument('cmd', help='command to run')
     parser.add_argument('opts', nargs='*', help='options to the command')
     args = parser.parse_args()
@@ -47,6 +49,8 @@ def main():
         stats = os.stat(args.log)
         if stats.st_size > 0:
             log.write('\n')
+        if args.comment is not None:
+            log.write('# {}\n'.format(args.comment))
         log.write('$ {}\n'.format(' '.join(cmd)))
         proc = subprocess.Popen(cmd,
                                 stdout=subprocess.PIPE,
