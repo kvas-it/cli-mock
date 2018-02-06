@@ -6,8 +6,10 @@ dist/
 *.py[cod]
 __pycache__/
 *.so
+*.swp
 *~
 
-# due to using tox and pytest
+# due to using tox, pytest and mypy
 .tox
 .cache
+.mypy_cache

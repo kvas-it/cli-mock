@@ -44,7 +44,7 @@ def crecord(script_runner, tmpdir, logfile):
         ret = script_runner.run('crecord', *crecord_args, **kw)
         try:
             print(logfile.read())  # For test debugging.
-        except:
+        except IOError:
             print('-- no logfile produced\n-- stderr:')
             print(ret.stderr)
         return ret

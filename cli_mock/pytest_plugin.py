@@ -14,7 +14,7 @@ class PopenController:
     log_path = ''
 
     # Set of commands supported by current replay log.
-    commands = set()  # type: Set[str]
+    commands = set()  # type: ignore
 
     # Strict mode (any command not in the log will cause AssertionError).
     strict = True
